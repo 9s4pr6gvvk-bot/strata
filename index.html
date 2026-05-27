@@ -669,13 +669,7 @@ footer {
 <!-- HERO with YouTube BG -->
 <section class="hero">
   <div class="yt-wrap">
-    <iframe
-      src="https://www.youtube.com/embed/ztQULxXJhXI?autoplay=1&mute=1&controls=0&loop=1&playlist=ztQULxXJhXI&start=9&rel=0&showinfo=0&modestbranding=1&iv_load_policy=3&disablekb=1&fs=0&cc_load_policy=0&playsinline=1"
-      allow="autoplay; encrypted-media"
-      allowfullscreen
-      frameborder="0"
-      title="STRATA background video"
-    ></iframe>
+    <div id="ytbg"></div>
     <div class="yt-blocker"></div>
   </div>
   <div class="hero-overlay"></div>
@@ -899,11 +893,6 @@ footer {
 
 
 
-// Hide hero loader after video buffers
-setTimeout(function(){
-  var loader = document.getElementById('heroLoader');
-  if(loader){ loader.classList.add('hidden'); }
-}, 2800);
 
 // Scroll reveal
 const obs = new IntersectionObserver(entries => {
@@ -993,5 +982,51 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 
+
+<script>
+// Inject YT API
+(function(){
+  var s = document.createElement('script');
+  s.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(s);
+})();
+
+var ytPlayer;
+function onYouTubeIframeAPIReady() {
+  ytPlayer = new YT.Player('ytbg', {
+    videoId: 'ztQULxXJhXI',
+    playerVars: {
+      autoplay:1, mute:1, controls:0,
+      loop:1, playlist:'ztQULxXJhXI',
+      start:9, rel:0, showinfo:0,
+      modestbranding:1, iv_load_policy:3,
+      disablekb:1, fs:0, cc_load_policy:0,
+      playsinline:1
+    },
+    events: {
+      onReady: function(e) {
+        e.target.mute();
+        e.target.seekTo(9, true);
+        e.target.playVideo();
+      },
+      onStateChange: function(e) {
+        // ONLY hide loader when video is actually PLAYING
+        if (e.data === YT.PlayerState.PLAYING) {
+          var loader = document.getElementById('heroLoader');
+          if (loader) {
+            loader.classList.add('hidden');
+            // Remove from DOM after fade completes
+            setTimeout(function(){ loader.remove(); }, 900);
+          }
+        }
+        // If paused or ended, resume
+        if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
+          setTimeout(function(){ e.target.playVideo(); }, 100);
+        }
+      }
+    }
+  });
+}
+</script>
 </body>
 </html>
