@@ -90,7 +90,7 @@ nav::before {
 }
 .yt-blocker {
   position:absolute;
-  inset:-10px;
+  inset:-100px;
   z-index:10;
   background:transparent;
   pointer-events:all;
@@ -629,6 +629,28 @@ footer {
 }
 .lb-submit:hover{background:#7af5ff;transform:translateY(-1px);}
 .lb-submit:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+/* ── HERO LOADER ── */
+.hero-loader {
+  position:absolute;inset:0;z-index:50;
+  background:var(--black);
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity 0.8s ease;
+  pointer-events:none;
+}
+.hero-loader.hidden {
+  opacity:0;
+}
+.loader-logo {
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-style:italic;
+  font-size:4rem;letter-spacing:-0.02em;text-transform:uppercase;
+  color:rgba(240,237,232,0.15);
+  animation:loaderPulse 1.5s ease-in-out infinite;
+}
+@keyframes loaderPulse {
+  0%,100%{opacity:0.15} 50%{opacity:0.4}
+}
 </style>
 </head>
 <body>
@@ -658,6 +680,7 @@ footer {
   </div>
   <div class="hero-overlay"></div>
   <div class="hero-scan"></div>
+  <div class="hero-loader" id="heroLoader"><div class="loader-logo">STRATA</div></div>
 
   <div class="hero-content">
     <p class="hero-eyebrow">Preston, England — Est. 2024</p>
@@ -874,6 +897,13 @@ footer {
 
 <script>
 
+
+
+// Hide hero loader after video buffers
+setTimeout(function(){
+  var loader = document.getElementById('heroLoader');
+  if(loader){ loader.classList.add('hidden'); }
+}, 2800);
 
 // Scroll reveal
 const obs = new IntersectionObserver(entries => {
