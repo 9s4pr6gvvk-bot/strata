@@ -647,8 +647,13 @@ footer {
 <!-- HERO with YouTube BG -->
 <section class="hero">
   <div class="yt-wrap">
-    <div id="ytbg"></div>
-    <!-- Multi-layer blocker - captures all pointer, touch and click events -->
+    <iframe
+      src="https://www.youtube.com/embed/ztQULxXJhXI?autoplay=1&mute=1&controls=0&loop=1&playlist=ztQULxXJhXI&start=9&rel=0&showinfo=0&modestbranding=1&iv_load_policy=3&disablekb=1&fs=0&cc_load_policy=0&playsinline=1"
+      allow="autoplay; encrypted-media"
+      allowfullscreen
+      frameborder="0"
+      title="STRATA background video"
+    ></iframe>
     <div class="yt-blocker"></div>
   </div>
   <div class="hero-overlay"></div>
@@ -958,57 +963,5 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 
-<script>
-// Load YT API dynamically
-var tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-document.head.appendChild(tag);
-
-var ytPlayer;
-function onYouTubeIframeAPIReady() {
-  ytPlayer = new YT.Player('ytbg', {
-    videoId: 'ztQULxXJhXI',
-    playerVars: {
-      autoplay: 1,
-      mute: 1,
-      loop: 1,
-      playlist: 'ztQULxXJhXI',
-      controls: 0,
-      disablekb: 1,
-      fs: 0,
-      iv_load_policy: 3,
-      modestbranding: 1,
-      playsinline: 1,
-      rel: 0,
-      showinfo: 0,
-      start: 9,
-      cc_load_policy: 0,
-      widget_referrer: window.location.href
-    },
-    events: {
-      onReady: function(e) {
-        e.target.mute();
-        e.target.seekTo(9, true);
-        e.target.playVideo();
-      },
-      onStateChange: function(e) {
-        if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
-          setTimeout(function(){ e.target.playVideo(); }, 200);
-        }
-      }
-    }
-  });
-}
-
-// Belt-and-braces: intercept any touch/click on the hero that might hit the video
-document.addEventListener('DOMContentLoaded', function(){
-  var blocker = document.querySelector('.yt-blocker');
-  if(blocker){
-    ['click','touchstart','touchend','mousedown','mouseup','pointerdown','pointerup'].forEach(function(evt){
-      blocker.addEventListener(evt, function(e){ e.preventDefault(); e.stopPropagation(); }, {passive:false});
-    });
-  }
-});
-</script>
 </body>
 </html>
