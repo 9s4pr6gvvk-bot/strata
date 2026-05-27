@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STRATA — Preston</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,200;0,300;0,400;0,700;0,900;1,900&family=Barlow:wght@300;400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:   #080809;
+  --deep:    #0d0d0f;
+  --panel:   #111114;
+  --border:  rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --blue:    #4af0ff;
+  --blue2:   #1ec8db;
+  --white:   #f0ede8;
+  --muted:   rgba(240,237,232,0.45);
+  --faint:   rgba(240,237,232,0.18);
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; font-size:16px; }
+body {
+  font-family:'Barlow', sans-serif;
+  background:var(--black);
+  color:var(--white);
+  overflow-x:hidden;
+  cursor:none;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── CUSTOM CURSOR ── */
+.cursor {
+  position:fixed; top:0; left:0; z-index:9999;
+  width:10px; height:10px; border-radius:50%;
+  background:var(--blue);
+  pointer-events:none;
+  transform:translate(-50%,-50%);
+  transition:transform 0.1s, width 0.25s, height 0.25s, opacity 0.25s;
+  mix-blend-mode:difference;
+}
+.cursor-ring {
+  position:fixed; top:0; left:0; z-index:9998;
+  width:36px; height:36px; border-radius:50%;
+  border:1px solid rgba(74,240,255,0.5);
+  pointer-events:none;
+  transform:translate(-50%,-50%);
+  transition:transform 0.12s ease, width 0.3s, height 0.3s;
+}
+body:hover .cursor { opacity:1; }
+
+/* ── GRAIN ── */
+body::after {
+  content:'';
+  position:fixed; inset:0; z-index:9997;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  pointer-events:none;
+  opacity:0.55;
+}
+
+/* ── NAV ── */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:500;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1.75rem 3.5rem;
+  mix-blend-mode:normal;
+}
+nav::before {
+  content:'';
+  position:absolute; inset:0;
+  background:linear-gradient(to bottom, rgba(8,8,9,0.7) 0%, transparent 100%);
+  pointer-events:none;
+}
+.nav-logo {
+  font-family:'Barlow Condensed', sans-serif;
+  font-weight:900; font-size:1.5rem;
+  letter-spacing:0.25em; text-transform:uppercase;
+  color:var(--white); text-decoration:none;
+  position:relative; z-index:1;
+}
+.nav-logo span { color:var(--blue); }
+.nav-links {
+  display:flex; gap:2.5rem; list-style:none;
+  position:relative; z-index:1;
+}
+.nav-links a {
+  font-family:'DM Mono', monospace;
+  font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--muted); text-decoration:none;
+  transition:color 0.2s;
+}
+.nav-links a:hover { color:var(--white); }
+
+/* ── HERO ── */
+.hero {
+  position:relative;
+  height:100vh; min-height:600px;
+  overflow:hidden;
+  display:flex; align-items:flex-end;
+}
+
+/* YouTube BG */
+.yt-wrap {
+  position:absolute; inset:0; z-index:0;
+  overflow:hidden; pointer-events:none;
+}
+.yt-wrap iframe {
+  position:absolute;
+  top:50%; left:50%;
+  width:177.78vh; /* 16:9 */
+  height:100vh;
+  min-width:100vw;
+  min-height:56.25vw;
+  transform:translate(-50%,-50%);
+  border:0;
+  pointer-events:none;
+}
+/* Dark overlay layers */
+.hero-overlay {
+  position:absolute; inset:0; z-index:1;
+  background:
+    linear-gradient(to top, rgba(8,8,9,1) 0%, rgba(8,8,9,0.3) 35%, rgba(8,8,9,0.15) 65%, rgba(8,8,9,0.5) 100%),
+    linear-gradient(to right, rgba(8,8,9,0.6) 0%, transparent 50%);
+}
+/* Scan lines */
+.hero-scan {
+  position:absolute; inset:0; z-index:2;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.04) 2px,
+    rgba(0,0,0,0.04) 4px
+  );
+  pointer-events:none;
+}
+
+.hero-content {
+  position:relative; z-index:3;
+  padding:0 3.5rem 5rem;
+  width:100%;
+}
+
+.hero-eyebrow {
+  font-family:'DM Mono', monospace;
+  font-size:0.62rem; letter-spacing:0.3em; text-transform:uppercase;
+  color:var(--blue); margin-bottom:1.5rem;
+  opacity:0; animation:fadeUp 0.8s 0.4s forwards;
+  display:flex; align-items:center; gap:0.75rem;
+}
+.hero-eyebrow::before {
+  content:''; display:inline-block;
+  width:32px; height:1px; background:var(--blue);
+}
+
+.hero-name {
+  font-family:'Barlow Condensed', sans-serif;
+  font-weight:900; font-style:italic;
+  font-size:clamp(7rem, 20vw, 18rem);
+  line-height:0.88; letter-spacing:-0.02em;
+  text-transform:uppercase;
+  color:var(--white);
+  opacity:0; animation:fadeUp 0.9s 0.2s forwards;
+  mix-blend-mode:normal;
+}
+.hero-name .outline {
+  -webkit-text-stroke:1px rgba(240,237,232,0.35);
+  color:transparent;
+}
+
+.hero-tagline {
+  font-family:'Barlow Condensed', sans-serif;
+  font-weight:200; font-size:clamp(1rem, 2.5vw, 1.5rem);
+  letter-spacing:0.35em; text-transform:uppercase;
+  color:var(--muted); margin-top:1.25rem;
+  opacity:0; animation:fadeUp 0.8s 0.6s forwards;
+}
+
+.hero-actions {
+  display:flex; align-items:center; gap:1.5rem;
+  margin-top:2.5rem;
+  opacity:0; animation:fadeUp 0.8s 0.8s forwards;
+}
+.btn-primary {
+  font-family:'DM Mono', monospace;
+  font-size:0.72rem; letter-spacing:0.18em; text-transform:uppercase;
+  color:var(--black); background:var(--blue);
+  border:none; padding:0.85rem 2rem;
+  cursor:none; text-decoration:none;
+  transition:background 0.2s, transform 0.2s;
+  display:inline-block;
+}
+.btn-primary:hover { background:#7af5ff; transform:translateY(-2px); }
+.btn-ghost {
+  font-family:'DM Mono', monospace;
+  font-size:0.72rem; letter-spacing:0.18em; text-transform:uppercase;
+  color:var(--white); background:transparent;
+  border:1px solid var(--border2); padding:0.85rem 2rem;
+  cursor:none; text-decoration:none;
+  transition:border-color 0.2s, color 0.2s;
+  display:inline-block;
+}
+.btn-ghost:hover { border-color:var(--white); }
+
+/* Scroll indicator */
+.scroll-hint {
+  position:absolute; bottom:2.5rem; right:3.5rem; z-index:3;
+  display:flex; align-items:center; gap:0.75rem;
+  font-family:'DM Mono', monospace;
+  font-size:0.58rem; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--faint);
+  writing-mode:vertical-rl;
+  opacity:0; animation:fadeIn 1s 1.2s forwards;
+}
+.scroll-line {
+  width:1px; height:48px;
+  background:linear-gradient(to bottom, var(--blue), transparent);
+  animation:scrollPulse 2s infinite;
+}
+
+/* ── MARQUEE ── */
+.marquee-wrap {
+  background:var(--blue); overflow:hidden;
+  padding:0.75rem 0; border-top:none;
+}
+.marquee-track {
+  display:flex; width:max-content;
+  animation:marquee 18s linear infinite;
+}
+.marquee-item {
+  font-family:'Barlow Condensed', sans-serif;
+  font-weight:700; font-size:0.85rem;
+  letter-spacing:0.25em; text-transform:uppercase;
+  color:var(--black);
+  padding:0 2.5rem; white-space:nowrap;
+}
+.marquee-item span { opacity:0.4; margin:0 1rem; }
+
+/* ── SECTION BASE ── */
+.section { padding:8rem 3.5rem; }
+.section-inner { max-width:1200px; margin:0 auto; }
+.mono-label {
+  font-family:'DM Mono', monospace;
+  font-size:0.6rem; letter-spacing:0.25em; text-transform:uppercase;
+  color:var(--blue); margin-bottom:1.25rem;
+  display:flex; align-items:center; gap:0.6rem;
+}
+.mono-label::before { content:''; width:20px; height:1px; background:var(--blue); }
+.section-h {
+  font-family:'Barlow Condensed', sans-serif;
+  font-weight:900; font-size:clamp(3rem, 7vw, 6rem);
+  letter-spacing:-0.02em; text-transform:uppercase; line-height:0.92;
+  color:var(--white);
+}
+
+/* ── ABOUT ── */
+.about-section { background:var(--deep); }
+.about-layout {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:6rem; align-items:center;
+}
+.about-img-wrap {
+  position:relative; aspect-ratio:3/4; overflow:hidden;
+}
+.about-img-wrap img {
+  width:100%; height:100%; object-fit:cover;
+  filter:grayscale(30%) contrast(1.1);
+  transition:transform 0.6s ease, filter 0.4s;
+}
+.about-img-wrap:hover img { transform:scale(1.03); filter:grayscale(0%) contrast(1.15); }
+.about-img-accent {
+  position:absolute; bottom:-1px; left:-1px; right:-1px;
+  height:40%; pointer-events:none;
+  background:linear-gradient(to top, var(--deep) 0%, transparent 100%);
+}
+.about-img-tag {
+  position:absolute; top:1.25rem; left:1.25rem;
+  font-family:'DM Mono', monospace; font-size:0.6rem;
+  letter-spacing:0.15em; text-transform:uppercase;
+  color:var(--black); background:var(--blue);
+  padding:0.3rem 0.75rem;
+}
+.about-text p {
+  font-weight:300; font-size:1.05rem; line-height:1.8;
+  color:var(--muted); margin-bottom:1.25rem;
+}
+.about-text p strong { color:var(--white); font-weight:400; }
+.stat-row {
+  display:grid; grid-template-columns:1fr 1fr 1fr;
+  gap:1px; background:var(--border);
+  margin-top:3rem; border:1px solid var(--border);
+}
+.stat {
+  background:var(--panel); padding:1.5rem 1.25rem;
+  text-align:center;
+}
+.stat-n {
+  font-family:'Barlow Condensed', sans-serif;
+  font-weight:900; font-size:2.5rem;
+  color:var(--blue); letter-spacing:-0.03em;
+  line-height:1;
+}
+.stat-l {
+  font-family:'DM Mono', monospace;
+  font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase;
+  color:var(--muted); margin-top:0.35rem;
+}
+
+/* ── MUSIC ── */
+.music-section { background:var(--black); }
+.music-grid {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:1px; background:var(--border);
+  margin-top:4rem; border:1px solid var(--border);
+}
+.track-card {
+  background:var(--panel); padding:2rem;
+  transition:background 0.25s;
+  cursor:none; position:relative; overflow:hidden;
+}
+.track-card::before {
+  content:''; position:absolute;
+  top:0; left:0; width:2px; height:100%;
+  background:var(--blue); transform:scaleY(0);
+  transform-origin:bottom; transition:transform 0.3s ease;
+}
+.track-card:hover { background:var(--deep); }
+.track-card:hover::before { transform:scaleY(1); }
+.track-num {
+  font-family:'DM Mono', monospace; font-size:0.6rem;
+  letter-spacing:0.15em; color:var(--faint);
+  margin-bottom:1.5rem;
+}
+.track-title {
+  font-family:'Barlow Condensed', sans-serif;
+  font-weight:700; font-size:1.6rem;
+  letter-spacing:0.03em; text-transform:uppercase;
+  color:var(--white); margin-bottom:0.5rem; line-height:1.1;
+}
+.track-meta {
+  font-family:'DM Mono', monospace; font-size:0.62rem;
+  letter-spacing:0.12em; color:var(--muted); margin-bottom:1.5rem;
+}
+.track-bar {
+  height:2px; background:var(--border2); position:relative;
+  margin-bottom:1.25rem;
+}
+.track-bar-fill {
+  position:absolute; top:0; left:0; height:100%;
+  background:var(--blue);
+}
+.track-play {
+  display:inline-flex; align-items:center; gap:0.5rem;
+  font-family:'DM Mono', monospace; font-size:0.6rem;
+  letter-spacing:0.15em; text-transform:uppercase;
+  color:var(--blue); text-decoration:none;
+  transition:gap 0.2s;
+}
+.track-play:hover { gap:0.85rem; }
+.track-play svg { flex-shrink:0; }
+
+/* ── VIDEO ── */
+.video-section { background:var(--deep); }
+.video-outer { margin-top:4rem; position:relative; }
+.video-embed {
+  position:relative; padding-bottom:56.25%;
+  overflow:hidden; border:1px solid var(--border);
+}
+.video-embed iframe {
+  position:absolute; inset:0; width:100%; height:100%; border:0;
+}
+.video-caption {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:1rem; padding-top:1rem;
+  border-top:1px solid var(--border);
+}
+.video-caption-title {
+  font-family:'Barlow Condensed', sans-serif;
+  font-weight:700; font-size:1.1rem;
+  letter-spacing:0.05em; text-transform:uppercase; color:var(--white);
+}
+.video-caption-meta {
+  font-family:'DM Mono', monospace; font-size:0.62rem;
+  letter-spacing:0.12em; color:var(--muted);
+}
+
+/* ── SHOWS ── */
+.shows-section { background:var(--black); }
+.shows-list { margin-top:4rem; }
+.show-row {
+  display:grid; grid-template-columns:80px 1fr 1fr auto;
+  align-items:center; gap:2rem;
+  padding:1.5rem 0; border-bottom:1px solid var(--border);
+  transition:background 0.2s; cursor:none;
+}
+.show-row:first-child { border-top:1px solid var(--border); }
+.show-row:hover { background:rgba(74,240,255,0.03); }
+.show-row:hover .show-date { color:var(--blue); }
+.show-date {
+  font-family:'Barlow Condensed', sans-serif;
+  font-weight:700; font-size:2rem; line-height:1;
+  letter-spacing:-0.02em; color:var(--white);
+  transition:color 0.2s;
+}
+.show-date-sub {
+  font-family:'DM Mono', monospace; font-size:0.55rem;
+  letter-spacing:0.15em; text-transform:uppercase; color:var(--muted);
+  margin-top:0.2rem;
+}
+.show-venue {
+  font-family:'Barlow Condensed', sans-serif;
+  font-weight:700; font-size:1.2rem;
+  letter-spacing:0.05em; text-transform:uppercase; color:var(--white);
+}
+.show-location {
+  font-family:'DM Mono', monospace; font-size:0.65rem;
+  letter-spacing:0.12em; text-transform:uppercase; color:var(--muted);
+  margin-top:0.2rem;
+}
+.show-type {
+  font-family:'DM Mono', monospace; font-size:0.6rem;
+  letter-spacing:0.12em; text-transform:uppercase;
+  padding:0.3rem 0.8rem;
+  border:1px solid var(--border2); color:var(--muted);
+}
+.show-type.headline { border-color:rgba(74,240,255,0.3); color:var(--blue); }
+.show-ticket {
+  font-family:'DM Mono', monospace; font-size:0.62rem;
+  letter-spacing:0.15em; text-transform:uppercase;
+  color:var(--blue); text-decoration:none; white-space:nowrap;
+  transition:opacity 0.2s;
+}
+.show-ticket:hover { opacity:0.7; }
+.no-shows {
+  font-family:'Barlow Condensed', sans-serif;
+  font-weight:300; font-size:1.1rem;
+  color:var(--muted); text-align:center;
+  padding:3rem 0; letter-spacing:0.1em;
+  border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+}
+
+/* ── MAILING LIST ── */
+.mail-section {
+  background:var(--blue); padding:6rem 3.5rem;
+}
+.mail-inner {
+  max-width:700px; margin:0 auto; text-align:center;
+}
+.mail-inner .mono-label { color:var(--black); justify-content:center; }
+.mail-inner .mono-label::before { background:var(--black); }
+.mail-h {
+  font-family:'Barlow Condensed', sans-serif;
+  font-weight:900; font-style:italic;
+  font-size:clamp(3rem, 7vw, 5.5rem);
+  letter-spacing:-0.03em; text-transform:uppercase;
+  color:var(--black); line-height:0.92; margin-bottom:1.5rem;
+}
+.mail-sub {
+  font-weight:300; font-size:0.95rem; line-height:1.7;
+  color:rgba(8,8,9,0.6); margin-bottom:2.5rem;
+}
+.mail-form { display:flex; gap:0; max-width:480px; margin:0 auto; }
+.mail-input {
+  flex:1; background:rgba(8,8,9,0.12);
+  border:1px solid rgba(8,8,9,0.25); border-right:none;
+  padding:0.9rem 1.25rem;
+  font-family:'DM Mono', monospace; font-size:0.8rem;
+  color:var(--black); outline:none;
+}
+.mail-input::placeholder { color:rgba(8,8,9,0.4); }
+.mail-btn {
+  background:var(--black); color:var(--blue);
+  font-family:'DM Mono', monospace; font-size:0.7rem;
+  letter-spacing:0.15em; text-transform:uppercase;
+  border:none; padding:0.9rem 1.5rem; cursor:none;
+  transition:background 0.2s; white-space:nowrap;
+}
+.mail-btn:hover { background:#0f0f12; }
+
+/* ── SOCIAL ── */
+.social-section { background:var(--deep); padding:4rem 3.5rem; }
+.social-inner {
+  max-width:1200px; margin:0 auto;
+  display:flex; justify-content:space-between; align-items:center;
+  flex-wrap:wrap; gap:2rem;
+}
+.social-brand {
+  font-family:'Barlow Condensed', sans-serif;
+  font-weight:900; font-size:1.5rem;
+  letter-spacing:0.25em; text-transform:uppercase; color:var(--white);
+}
+.social-brand span { color:var(--blue); }
+.social-links { display:flex; gap:1.5rem; }
+.social-link {
+  font-family:'DM Mono', monospace; font-size:0.65rem;
+  letter-spacing:0.15em; text-transform:uppercase;
+  color:var(--muted); text-decoration:none;
+  transition:color 0.2s; display:flex; align-items:center; gap:0.5rem;
+}
+.social-link:hover { color:var(--blue); }
+
+/* ── FOOTER ── */
+footer {
+  background:var(--black); border-top:1px solid var(--border);
+  padding:2rem 3.5rem;
+  display:flex; justify-content:space-between; align-items:center;
+  flex-wrap:wrap; gap:1rem;
+}
+.footer-copy {
+  font-family:'DM Mono', monospace; font-size:0.6rem;
+  letter-spacing:0.12em; color:var(--faint);
+}
+.footer-loc {
+  font-family:'DM Mono', monospace; font-size:0.6rem;
+  letter-spacing:0.2em; text-transform:uppercase; color:var(--faint);
+}
+.footer-loc span { color:var(--blue); }
+
+/* ── REVEAL ── */
+.reveal { opacity:0; transform:translateY(32px); transition:opacity 0.7s ease, transform 0.7s ease; }
+.reveal.on { opacity:1; transform:translateY(0); }
+.reveal-d1 { transition-delay:0.1s; }
+.reveal-d2 { transition-delay:0.2s; }
+.reveal-d3 { transition-delay:0.3s; }
+
+/* ── KEYFRAMES ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(28px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity:0; } to { opacity:1; }
+}
+@keyframes marquee {
+  from { transform:translateX(0); }
+  to   { transform:translateX(-50%); }
+}
+@keyframes scrollPulse {
+  0%,100% { opacity:0.3; } 50% { opacity:1; }
+}
+
+/* ── MOBILE ── */
+@media(max-width:900px){
+  nav { padding:1.25rem 1.5rem; }
+  .nav-links { display:none; }
+  .hero-content { padding:0 1.5rem 4rem; }
+  .section { padding:5rem 1.5rem; }
+  .about-layout { grid-template-columns:1fr; gap:3rem; }
+  .music-grid { grid-template-columns:1fr; }
+  .show-row { grid-template-columns:60px 1fr; gap:1rem; }
+  .show-type, .show-ticket { display:none; }
+  .mail-section { padding:4rem 1.5rem; }
+  .mail-form { flex-direction:column; }
+  .mail-input { border-right:1px solid rgba(8,8,9,0.25); border-bottom:none; }
+  .social-section, footer { padding:3rem 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">STR<span>A</span>TA</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#music">Music</a></li>
+    <li><a href="#shows">Shows</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO with YouTube BG -->
+<section class="hero">
+  <div class="yt-wrap">
+    <iframe
+      id="ytbg"
+      src="https://www.youtube.com/embed/ztQULxXJhXI?autoplay=1&mute=1&loop=1&playlist=ztQULxXJhXI&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1"
+      title="STRATA background"
+      allow="autoplay; encrypted-media"
+      frameborder="0"
+    ></iframe>
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="hero-scan"></div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">Preston, England — Est. 2024</p>
+    <h1 class="hero-name">
+      STR<span class="outline">A</span>TA
+    </h1>
+    <p class="hero-tagline">Indie / Alt-Rock &nbsp;&middot;&nbsp; From the North</p>
+    <div class="hero-actions">
+      <a href="#music" class="btn-primary">Hear the Music</a>
+      <a href="#shows" class="btn-ghost">Upcoming Shows</a>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    Scroll
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item">STRATA <span>✦</span></span>
+    <span class="marquee-item">Preston <span>✦</span></span>
+    <span class="marquee-item">Indie Rock <span>✦</span></span>
+    <span class="marquee-item">New Music <span>✦</span></span>
+    <span class="marquee-item">Live Shows <span>✦</span></span>
+    <span class="marquee-item">STRATA <span>✦</span></span>
+    <span class="marquee-item">Preston <span>✦</span></span>
+    <span class="marquee-item">Indie Rock <span>✦</span></span>
+    <span class="marquee-item">New Music <span>✦</span></span>
+    <span class="marquee-item">Live Shows <span>✦</span></span>
+    <span class="marquee-item">STRATA <span>✦</span></span>
+    <span class="marquee-item">Preston <span>✦</span></span>
+    <span class="marquee-item">Indie Rock <span>✦</span></span>
+    <span class="marquee-item">New Music <span>✦</span></span>
+    <span class="marquee-item">Live Shows <span>✦</span></span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section class="section about-section" id="about">
+  <div class="section-inner">
+    <div class="about-layout">
+      <div class="about-img-wrap reveal">
+        <div class="about-img-tag">Preston, UK</div>
+        <img
+          src="https://yt3.googleusercontent.com/JoAsWHm44VL4rHqjtuSmft-Jkf_DWbQtbMhoOUkKw7oN180kUhImVJFdGHv54qGfij9DoUMMYg=w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj"
+          alt="STRATA band photo"
+        />
+        <div class="about-img-accent"></div>
+      </div>
+      <div class="reveal reveal-d1">
+        <p class="mono-label">About</p>
+        <h2 class="section-h">Built<br>from the<br>North</h2>
+        <div class="about-text" style="margin-top:2rem">
+          <p>STRATA are an <strong>emerging indie rock band from Preston, Lancashire</strong> — forging a sound that sits somewhere between raw guitar energy and atmospheric, layered songwriting.</p>
+          <p>Drawing on the grit of Northern England and the expansive indie tradition that surrounds them, STRATA are building something <strong>distinctly their own</strong> — honest, loud, and uncompromising.</p>
+          <p>Currently recording new material and playing shows across the North, this is a band at the beginning of something real.</p>
+        </div>
+        <div class="stat-row">
+          <div class="stat">
+            <div class="stat-n">2024</div>
+            <div class="stat-l">Founded</div>
+          </div>
+          <div class="stat">
+            <div class="stat-n">PRE</div>
+            <div class="stat-l">Based In</div>
+          </div>
+          <div class="stat">
+            <div class="stat-n">↑</div>
+            <div class="stat-l">On The Rise</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MUSIC -->
+<section class="section music-section" id="music">
+  <div class="section-inner">
+    <div class="reveal">
+      <p class="mono-label">Music</p>
+      <h2 class="section-h">Tracks</h2>
+    </div>
+    <div class="music-grid">
+      <div class="track-card reveal">
+        <div class="track-num">01 — Latest</div>
+        <div class="track-title">Watch on YouTube</div>
+        <div class="track-meta">STRATA &mdash; Official</div>
+        <div class="track-bar"><div class="track-bar-fill" style="width:100%"></div></div>
+        <a href="https://www.youtube.com/watch?v=ztQULxXJhXI" target="_blank" class="track-play">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><polygon points="1,0 10,5 1,10"/></svg>
+          Play on YouTube
+        </a>
+      </div>
+      <div class="track-card reveal reveal-d1">
+        <div class="track-num">02 — Streaming</div>
+        <div class="track-title">Find Us on Spotify</div>
+        <div class="track-meta">All platforms</div>
+        <div class="track-bar"><div class="track-bar-fill" style="width:65%"></div></div>
+        <a href="https://open.spotify.com/search/STRATA%20Preston" target="_blank" class="track-play">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><polygon points="1,0 10,5 1,10"/></svg>
+          Search Spotify
+        </a>
+      </div>
+      <div class="track-card reveal reveal-d2">
+        <div class="track-num">03 — Social</div>
+        <div class="track-title">Follow the Journey</div>
+        <div class="track-meta">Behind the scenes</div>
+        <div class="track-bar"><div class="track-bar-fill" style="width:40%"></div></div>
+        <a href="https://www.youtube.com/@strataprestonband" target="_blank" class="track-play">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><polygon points="1,0 10,5 1,10"/></svg>
+          YouTube Channel
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VIDEO -->
+<section class="section video-section">
+  <div class="section-inner">
+    <div class="reveal">
+      <p class="mono-label">Watch</p>
+      <h2 class="section-h">Latest<br>Video</h2>
+    </div>
+    <div class="video-outer reveal">
+      <div class="video-embed">
+        <iframe
+          src="https://www.youtube.com/embed/ztQULxXJhXI?si=MLSIJRlwOjAOXOFJ&controls=1&rel=0&modestbranding=1"
+          title="STRATA — Official Video"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen
+        ></iframe>
+      </div>
+      <div class="video-caption">
+        <div class="video-caption-title">STRATA — Official</div>
+        <div class="video-caption-meta">Preston, Lancashire &nbsp;&middot;&nbsp; 2024</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SHOWS -->
+<section class="section shows-section" id="shows">
+  <div class="section-inner">
+    <div class="reveal" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1.5rem;margin-bottom:0">
+      <div>
+        <p class="mono-label">Live</p>
+        <h2 class="section-h">Shows</h2>
+      </div>
+      <p style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--muted);max-width:280px;line-height:1.7">More dates being confirmed — follow on socials for announcements</p>
+    </div>
+    <div class="shows-list reveal">
+      <div class="show-row">
+        <div>
+          <div class="show-date">TBA</div>
+          <div class="show-date-sub">2025</div>
+        </div>
+        <div>
+          <div class="show-venue">Preston Venue</div>
+          <div class="show-location">Preston, Lancashire</div>
+        </div>
+        <div><span class="show-type headline">Headline</span></div>
+        <a href="#contact" class="show-ticket">Get Notified →</a>
+      </div>
+    </div>
+    <p class="no-shows reveal">More shows coming — sign up below to be first to know</p>
+  </div>
+</section>
+
+<!-- MAILING LIST -->
+<section class="mail-section" id="contact">
+  <div class="mail-inner">
+    <p class="mono-label">Stay Close</p>
+    <h2 class="mail-h">Don't Miss<br>a Thing</h2>
+    <p class="mail-sub">New music, show announcements, and updates — straight to you. No spam, ever.</p>
+    <form class="mail-form" onsubmit="handleMailSubmit(event)">
+      <input class="mail-input" type="email" placeholder="your@email.com" required id="mailInput">
+      <button type="submit" class="mail-btn">Sign Up →</button>
+    </form>
+  </div>
+</section>
+
+<!-- SOCIAL -->
+<section class="social-section">
+  <div class="social-inner">
+    <div class="social-brand">STR<span>A</span>TA</div>
+    <div class="social-links">
+      <a href="https://www.youtube.com/@strataprestonband" target="_blank" class="social-link">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>
+        YouTube
+      </a>
+      <a href="https://open.spotify.com/search/STRATA%20Preston" target="_blank" class="social-link">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+        Spotify
+      </a>
+      <a href="mailto:strata@example.com" class="social-link">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
+        Contact
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-copy">© 2025 STRATA. All rights reserved.</div>
+  <div class="footer-loc"><span>PRE</span> — Preston, Lancashire, England</div>
+</footer>
+
+<script>
+// Custom cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx=0, my=0, rx=0, ry=0;
+document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cursor.style.left=mx+'px'; cursor.style.top=my+'px'; });
+function animRing(){ rx+=(mx-rx)*0.12; ry+=(my-ry)*0.12; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(animRing); }
+animRing();
+document.querySelectorAll('a,button').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.style.width='20px'; cursor.style.height='20px'; ring.style.width='56px'; ring.style.height='56px'; });
+  el.addEventListener('mouseleave', () => { cursor.style.width='10px'; cursor.style.height='10px'; ring.style.width='36px'; ring.style.height='36px'; });
+});
+
+// Scroll reveal
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('on'); obs.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// Mailing list
+function handleMailSubmit(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('.mail-btn');
+  btn.textContent = 'Signed Up ✓';
+  btn.style.background = '#0a2a0a';
+  btn.style.color = '#4af0ff';
+  e.target.querySelector('#mailInput').value = '';
+  btn.disabled = true;
+}
+</script>
+</body>
+</html>
