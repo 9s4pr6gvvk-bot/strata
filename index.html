@@ -88,6 +88,16 @@ nav::before {
   position:absolute; inset:0; z-index:0;
   overflow:hidden; pointer-events:none;
 }
+.yt-blocker {
+  position:absolute;
+  inset:-10px;
+  z-index:10;
+  background:transparent;
+  pointer-events:all;
+  cursor:default;
+  -webkit-user-select:none;
+  user-select:none;
+}
 .yt-wrap iframe {
   position:absolute;
   top:50%; left:50%;
@@ -638,8 +648,8 @@ footer {
 <section class="hero">
   <div class="yt-wrap">
     <div id="ytbg"></div>
-    <!-- Full-size click/interaction blocker sits on top of iframe -->
-    <div style="position:absolute;inset:0;z-index:1;pointer-events:all;background:transparent;"></div>
+    <!-- Multi-layer blocker - captures all pointer, touch and click events -->
+    <div class="yt-blocker"></div>
   </div>
   <div class="hero-overlay"></div>
   <div class="hero-scan"></div>
@@ -947,8 +957,13 @@ document.addEventListener('DOMContentLoaded',function(){
 </div>
 
 
-<script src="https://www.youtube.com/iframe_api"></script>
+
 <script>
+// Load YT API dynamically
+var tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(tag);
+
 var ytPlayer;
 function onYouTubeIframeAPIReady() {
   ytPlayer = new YT.Player('ytbg', {
@@ -968,7 +983,7 @@ function onYouTubeIframeAPIReady() {
       showinfo: 0,
       start: 9,
       cc_load_policy: 0,
-      origin: window.location.origin
+      widget_referrer: window.location.href
     },
     events: {
       onReady: function(e) {
@@ -977,14 +992,23 @@ function onYouTubeIframeAPIReady() {
         e.target.playVideo();
       },
       onStateChange: function(e) {
-        // If paused or ended, resume
         if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
-          e.target.playVideo();
+          setTimeout(function(){ e.target.playVideo(); }, 200);
         }
       }
     }
   });
 }
+
+// Belt-and-braces: intercept any touch/click on the hero that might hit the video
+document.addEventListener('DOMContentLoaded', function(){
+  var blocker = document.querySelector('.yt-blocker');
+  if(blocker){
+    ['click','touchstart','touchend','mousedown','mouseup','pointerdown','pointerup'].forEach(function(evt){
+      blocker.addEventListener(evt, function(e){ e.preventDefault(); e.stopPropagation(); }, {passive:false});
+    });
+  }
+});
 </script>
 </body>
 </html>
